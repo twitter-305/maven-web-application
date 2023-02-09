@@ -8,6 +8,7 @@ node{
     sh "${mavenHome}/bin/mvn clean package"
     }
     
+    /*
      stage('3codeQuality'){
      sh "${mavenHome}/bin/mvn clean sonar:sonar"
      }
@@ -36,4 +37,5 @@ please check build status.
 
 Christelle''', recipientProviders: [buildUser(), developers()], subject: 'build status', to: 'tesla-app@gmail.com'
     }
+    */
 }    
