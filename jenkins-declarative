@@ -1,0 +1,63 @@
+pipeline{
+    agent any
+    tools{
+        maven "maven3.8.6"
+   }
+   stages{
+       stage('1GetCode'){
+           steps{
+               sh "echo 'cloning the latest application version' "
+               git branch: 'feature', url: 'https://github.com/twitter-305/maven-web-application'
+               
+           }
+       }
+       stage('2Test+Build'){
+           steps{
+               sh "echo 'running JUnit-test-cases' "
+               sh "echo 'testing must passed to create artifacts' "
+               sh "mvn clean package"
+           }
+       }
+       stage('3codequality'){
+           steps{
+               sh "echo 'performing CodeQualityAnalysis' "
+               sh "mvn sonar:sonar"
+           }
+       }
+       stage('4UploadNexus'){
+           steps{
+               sh "mvn deploy"
+           }
+       }
+        stage('5deploy2prod'){
+            steps{
+                deploy adapters: [tomcat9(credentialsId: 'tomcat-credentials', path: '', url: 'http://192.168.56.20:8080/')], contextPath: null, war: 'target/*war'
+            }
+       }
+   }
+   post{
+       always{
+           
+           emailext body: '''Hi Guys, 
+Please check build status.
+
+Thanks,
+christelle''', recipientProviders: [contributor(), buildUser(), developers()], subject: 'build status', to: 'fintech-team@gmail.com'
+           
+       }
+       success{
+           emailext body: '''Hi Guys, 
+Good job Build and deployment successful.
+
+Thanks,
+christelle''', recipientProviders: [contributor(), buildUser(), developers()], subject: 'success', to: 'fintech-team@gmail.com'
+       }
+       failure{
+            emailext body: '''Hi Guys, 
+Build failed. Please resolve issues.
+
+Thanks,
+christelle''', recipientProviders: [contributor(), buildUser(), developers()], subject: 'failure', to: 'fintech-team@gmail.com'}
+   }
+   
+}
